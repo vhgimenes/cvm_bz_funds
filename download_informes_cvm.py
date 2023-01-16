@@ -1,11 +1,11 @@
 """
-Projeto: CVM_FUNDS
-
+Author: Victor Gimenes
+Date: 13/07/2021
 Módulo responsável pelo:
     (i)  Download dos informes diários e Informações cadastrais do site da CVM em formato csv e; 
-    (ii) Armazenamento desses arquivos na pasta raw (para posteriormente serem armazarnados na base de dados)
+    (ii) Armazenamento desses arquivos na pasta raw 
 """
-#%%
+
 #Ignoras warnings desnecessários
 import warnings
 warnings.filterwarnings("ignore")
@@ -24,16 +24,7 @@ import workdays as wd
 import time
 
 #2: Importando módulo com meu logger customizado
-import sys
-sys.path.insert(0,r'T:\GESTAO\MACRO\DEV\AUXILIARES')
-from my_logging import get_logger
-from feriadosAnbima import holidays
-
-# Instanciando o local que o logg desse módulo será salvo e o seu nome
-global logg_path
-global logger_name
-logg_path = r'T:\GESTAO\MACRO\DEV\LOGGS\MAIN.txt'
-logger_name = 'CVM_FUNDS_DOWNLOAD'
+from bz_holidays import holidays
 
 def load_cadastro_cvm():
     """
@@ -109,9 +100,7 @@ def load_informes_cvm(year: int, mth: int, db_cvm_reference_year: int):
         raise ValueError('Erro: theres no report for this date!.\n')
 
 def main(recalc: int = 0):
-    #Instanciando meu logger
-    logger = get_logger(logger_name,logg_path)
-    logger.info(msg="Iniciando rotina de extração CVM...")
+    print("Iniciando rotina de extração CVM...")
     t = time.time()
     #Criando as datas para buscar das informações
     today = datetime.now()
@@ -124,33 +113,33 @@ def main(recalc: int = 0):
         initial_date = end_date - dateutil.relativedelta.relativedelta(months=11)
     #A data de mudança de busca das informações de dentro do site da CVM #TODO: REVISAR COM O TEMPO COMO O SITE SE REAJUSTA O HISTÓRICO DOS DADOS
     db_cvm_reference_year = end_date.year - 1
-    logger.info(msg="Iniciando a extração e armazenamento dos informes...")
+    print("Iniciando a extração e armazenamento dos informes...")
     while initial_date <= end_date:
         mth = initial_date.month
         year = initial_date.year
         try:
-            logger.debug(msg=f"Extraindo o informe: {mth:02d}/{year}.")
+            print(f"Extraindo o informe: {mth:02d}/{year}.")
             load_informes_cvm(year, mth, db_cvm_reference_year)
-            logger.debug(msg="Extração realizada com sucesso!")
+            print("Extração realizada com sucesso!")
         except Exception as e:
-            logger.error(msg=f"Falha na extração do informe: {mth:02d}/{year}.",exc_info=True)
-            logger.critical(msg="Erro crítico: stopando a rotina.")
+            print(f"Falha na extração do informe: {mth:02d}/{year}.")
+            print("Erro crítico: stopando a rotina.")
             raise
         initial_date = initial_date + dateutil.relativedelta.relativedelta(months=1)
-    logger.info(msg="Extração e armazenamento dos informes realizados com sucesso!")
+    print("Extração e armazenamento dos informes realizados com sucesso!")
 
     #Iniciando a extração e armazenamento da informação cadastral 
-    logger.info(msg="Iniciando rotina de extração das informações cadastrais.")
+    print("Iniciando rotina de extração das informações cadastrais.")
     try:
         load_cadastro_cvm()
-        logger.debug(msg="Extração realizada com sucesso!")
+        print("Extração realizada com sucesso!")
     except Exception as e:
-        logger.error(msg=f"Falha na extração do informação cadastral: {e}.",exc_info=True)
-        logger.critical(msg="Erro crítico: stopando a rotina.")
+        print(f"Falha na extração do informação cadastral: {e}.")
+        print("Erro crítico: stopando a rotina.")
         raise
     t = time.time() - t
-    logger.info(msg="Rotina finalizada com sucesso!")
-    logger.info(msg=f"Tempo de execução: {t} seconds")
+    print("Rotina finalizada com sucesso!")
+    print(f"Tempo de execução: {t} seconds.")
     
 if __name__ == '__main__':
     main(1)
